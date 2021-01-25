@@ -39,11 +39,14 @@ public class KafkaEventsWebsocketHandler implements WebSocketHandler {
 	
 	private final DefaultDataBufferFactory bufferFactory;
 	
-	private Flux<ReceiverRecord<String,String>> singleKafkaFlux = null;
+	private Flux<ReceiverRecord<String,String>> generalKafkaFlux = null;
+	private Flux<String> unfilteredTextFlux = null;
 	
 	@PostConstruct
 	public void createKafkaReceiver() {
-		singleKafkaFlux = kafkaReceiver.receive().publish().autoConnect(1);
+		generalKafkaFlux = kafkaReceiver.receive().publish().autoConnect(1);
+		unfilteredTextFlux = generalKafkaFlux.doOnNext(r -> r.receiverOffset().acknowledge())
+				.map(ReceiverRecord::value);
 	}
 	
 	@Override
@@ -54,12 +57,19 @@ public class KafkaEventsWebsocketHandler implements WebSocketHandler {
 			Map<String, String> queryParams = parseQuery(session.getHandshakeInfo().getUri().getQuery());
 			String agentId = queryParams.get("agentId");
 			
+			// create a Reactor Publisher for this client:
+			Flux<String> filteredTextFlux = unfilteredTextFlux;
+			if(agentId != null) {
+				filteredTextFlux = unfilteredTextFlux.filter((record) -> record.contains(agentId));
+			}
+			// We cant pass work-in-progress to inner classes, so mark the final flow as final:
+			final Flux<String> composedTextFlux = unfilteredTextFlux;
+			
 			// traffic is handled with session.receive() and session.send()
 			Mono<Void> wsSessionPublisher = session.send(
-					singleKafkaFlux.doOnNext(r -> r.receiverOffset().acknowledge())
-					.map(ReceiverRecord::value).filter((record) -> record.contains(agentId))
+					filteredTextFlux
 					.map(i -> new WebSocketMessage(WebSocketMessage.Type.TEXT, bufferFactory.wrap(ByteBuffer.wrap(i.getBytes(StandardCharsets.UTF_8)))))
-	        ).doOnSubscribe((subscription) -> singleKafkaFlux.subscribe());
+	        ).doOnSubscribe((subscription) -> composedTextFlux.subscribe());
 			
 			
 			return wsSessionPublisher;
@@ -72,7 +82,9 @@ public class KafkaEventsWebsocketHandler implements WebSocketHandler {
 
 	private Map<String, String> parseQuery(String query) throws UnsupportedEncodingException {
 		Map<String, String> queryParams = new HashMap<String, String>();
-		
+		if(query==null || query.isEmpty()) {
+			return queryParams;
+		}
 		String[] params = query.split("&");
 		for(String currParam : params) {
 			int eqOffset = currParam.indexOf("=");

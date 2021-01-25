@@ -146,11 +146,12 @@
 }
 </style>
 <body onLoad="init()">
-<center><h1>WebSocket Playground</h1></center>
+<center><h1>Websocket Playground</h1></center>
 
 <div class="dashboardLayout">
 <form>
-	<div class="row"><div class="rowLabel" id="hostEndpointLabel">Websocket Endpoint:</div><div class="hostInfo"><input type="text" id="hostEndpointInput" name="hostEndpointInput" value="ws://localhost:8080"/></div> </div>
+	<div class="row"><div class="rowLabel" id="sampleQueryLabel">Sample Query:</div><div class="sampleQuery">?agentId=charlie</div></div>
+	<div class="row"><div class="rowLabel" id="hostEndpointLabel">Websocket Endpoint:</div><div class="hostInfo"><input type="text" id="hostEndpointInput" name="hostEndpointInput" value="ws://localhost:8080/events"/></div> </div>
 	<div class="row" id="connectionStatus">Not Connected</div>
 	<div class="row">
 		<div class="rowLabel" id="paramsLabel">Connection Parameters:</div>
