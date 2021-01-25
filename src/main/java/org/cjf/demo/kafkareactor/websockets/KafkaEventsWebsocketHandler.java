@@ -63,11 +63,11 @@ public class KafkaEventsWebsocketHandler implements WebSocketHandler {
 				filteredTextFlux = unfilteredTextFlux.filter((record) -> record.contains(agentId));
 			}
 			// We cant pass work-in-progress to inner classes, so mark the final flow as final:
-			final Flux<String> composedTextFlux = unfilteredTextFlux;
+			final Flux<String> composedTextFlux = filteredTextFlux;
 			
-			// traffic is handled with session.receive() and session.send()
+			// websocket traffic is handled with session.receive() and session.send() - this demo only sends
 			Mono<Void> wsSessionPublisher = session.send(
-					filteredTextFlux
+					composedTextFlux
 					.map(i -> new WebSocketMessage(WebSocketMessage.Type.TEXT, bufferFactory.wrap(ByteBuffer.wrap(i.getBytes(StandardCharsets.UTF_8)))))
 	        ).doOnSubscribe((subscription) -> composedTextFlux.subscribe());
 			

@@ -54,10 +54,11 @@
 		// the Promise gets returned immediately, but Promise.then (see above) will block until its resolve method (see below) is invoked.
 		return new Promise(function(resolve, reject) { 
 			let endpoint = document.getElementById("hostEndpointInput").value;
-			let query = assembleQueryFromFormFields();
-			if(query) {
-				endpoint += "?" + query;
-			}
+			// This is just a demo - user can simply type these into the endpoint input.
+			//let query = assembleQueryFromFormFields();
+			//if(query) {
+			//	endpoint += "?" + query;
+			//}
 			socketEndpoint = endpoint; // assign to global
 			
 			let localSocket = new WebSocket(endpoint);
@@ -150,17 +151,19 @@
 
 <div class="dashboardLayout">
 <form>
-	<div class="row"><div class="rowLabel" id="sampleQueryLabel">Sample Query:</div><div class="sampleQuery">?agentId=charlie</div></div>
+	<div class="row"><div class="rowLabel" id="sampleQueryLabel">Sample Endpoint+Query:</div><div class="sampleQuery">ws://localhost:8080/events?agentId=charlie</div></div>
 	<div class="row"><div class="rowLabel" id="hostEndpointLabel">Websocket Endpoint:</div><div class="hostInfo"><input type="text" id="hostEndpointInput" name="hostEndpointInput" value="ws://localhost:8080/events"/></div> </div>
 	<div class="row" id="connectionStatus">Not Connected</div>
+	<!-- 
 	<div class="row">
 		<div class="rowLabel" id="paramsLabel">Connection Parameters:</div>
 		<div class="expandableList" id="paramList">
 			<input type="text" id="filterParamName" name="param1"/>
 			<input type="text" id="filterParamValue" name="param2"/>
 		</div>
-		<!-- TODO: add +/- buttons -->
+		TODO: add +/- buttons 
 	</div>
+	 -->
 	<div class="row">
 		<div class="controls">
 			<input type="button" id="connectButton" class="buttonControls" value="Connect" onClick="handleConnectButton(this)"/>
